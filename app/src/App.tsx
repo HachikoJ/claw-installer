@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import { installSteps } from './steps';
-import type { EnvironmentCheckItem, InstallStepKey } from './shared-types';
+import type { EnvironmentCheckItem } from './shared-types';
+import { useInstallerStore } from './store';
 
 declare global {
   interface Window {
@@ -20,7 +21,6 @@ declare global {
 }
 
 function App() {
-  const [activeStep, setActiveStep] = useState<InstallStepKey>('location');
   const [environment, setEnvironment] = useState<null | {
     osType: string;
     osVersion: string;
@@ -31,9 +31,15 @@ function App() {
     memoryGb: number;
   }>(null);
 
+  const { activeStep, installPath, dataPath, servicePort, accessMode, setDraft } = useInstallerStore();
+
   useEffect(() => {
-    window.clawInstaller?.getEnvironment().then(setEnvironment).catch(() => undefined);
-  }, []);
+    window.clawInstaller?.getEnvironment().then((env) => {
+      setEnvironment(env);
+      if (!installPath) setDraft({ installPath: env.defaultInstallPath });
+      if (!dataPath) setDraft({ dataPath: env.defaultDataPath });
+    }).catch(() => undefined);
+  }, [dataPath, installPath, setDraft]);
 
   const checks: EnvironmentCheckItem[] = useMemo(
     () => [
@@ -52,19 +58,19 @@ function App() {
         detail: environment ? `检测到 ${environment.memoryGb} GB 内存` : '等待主进程返回信息',
       },
       {
-        key: 'network',
-        label: '网络连接',
-        status: 'warn',
-        detail: '网络连通检测将在下一步接入真实检测服务',
+        key: 'path',
+        label: '默认路径',
+        status: installPath ? 'pass' : 'pending',
+        detail: installPath ? `安装目录：${installPath}` : '正在生成默认安装目录',
       },
       {
         key: 'dependency',
         label: '依赖环境',
         status: 'pending',
-        detail: '后续接入 Node / Docker / Git 等真实检测项',
+        detail: '下一步继续接入 Node / Docker / Git 等真实检测项',
       },
     ],
-    [environment],
+    [environment, installPath],
   );
 
   const activeIndex = useMemo(
@@ -74,12 +80,12 @@ function App() {
 
   const nextStep = () => {
     const next = installSteps[activeIndex + 1];
-    if (next) setActiveStep(next.key);
+    if (next) setDraft({ activeStep: next.key });
   };
 
   const prevStep = () => {
     const prev = installSteps[activeIndex - 1];
-    if (prev) setActiveStep(prev.key);
+    if (prev) setDraft({ activeStep: prev.key });
   };
 
   return (
@@ -100,7 +106,7 @@ function App() {
               <button
                 key={step.key}
                 className={`step-card ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}
-                onClick={() => setActiveStep(step.key)}
+                onClick={() => setDraft({ activeStep: step.key })}
               >
                 <span className="step-index">{index + 1}</span>
                 <span>
@@ -110,6 +116,10 @@ function App() {
               </button>
             );
           })}
+        </div>
+        <div className="sidebar-footer">
+          <strong>开发状态</strong>
+          <small>已接入 Electron / preload / IPC / draft persistence</small>
         </div>
       </aside>
 
@@ -127,16 +137,16 @@ function App() {
             <div className="panel">
               <h3>安装目录</h3>
               <label>程序目录</label>
-              <input value={environment?.defaultInstallPath ?? '读取中...'} readOnly />
+              <input value={installPath} onChange={(e) => setDraft({ installPath: e.target.value })} />
               <label>数据目录</label>
-              <input value={environment?.defaultDataPath ?? '读取中...'} readOnly />
+              <input value={dataPath} onChange={(e) => setDraft({ dataPath: e.target.value })} />
             </div>
             <div className="panel">
               <h3>目录说明</h3>
               <ul>
-                <li>默认使用当前用户主目录，降低权限问题</li>
-                <li>已通过 Electron 主进程按当前系统生成默认路径</li>
-                <li>下一步接入真实目录选择器和权限检测</li>
+                <li>默认路径从 Electron 主进程按系统自动生成</li>
+                <li>当前页面内容会自动保存，下次打开可以恢复</li>
+                <li>下一步继续接入真实目录选择器和权限检测</li>
               </ul>
             </div>
           </section>
@@ -186,9 +196,9 @@ function App() {
             </div>
             <div className="panel">
               <h3>实时日志</h3>
-              <pre>[info] electron main process wired
-[info] preload bridge ready
-[info] real env data connected
+              <pre>[info] electron shell wired
+[info] IPC bridge active
+[info] draft persistence active
 </pre>
             </div>
           </section>
@@ -199,16 +209,16 @@ function App() {
             <div className="panel">
               <h3>基础配置</h3>
               <label>服务端口</label>
-              <input value="18789" readOnly />
+              <input value={servicePort} onChange={(e) => setDraft({ servicePort: e.target.value })} />
               <label>访问模式</label>
-              <input value="local_only" readOnly />
+              <input value={accessMode} onChange={(e) => setDraft({ accessMode: e.target.value })} />
             </div>
             <div className="panel">
               <h3>安全默认值</h3>
               <ul>
                 <li>默认仅本地访问</li>
                 <li>默认启用更安全配置</li>
-                <li>后续接入真实配置生成器与权限收紧逻辑</li>
+                <li>下一步接入真实配置生成器与权限收紧逻辑</li>
               </ul>
             </div>
           </section>
@@ -226,10 +236,19 @@ function App() {
         )}
 
         {activeStep === 'done' && (
-          <section className="panel-grid">
+          <section className="panel-grid two-col">
             <div className="panel done-panel">
               <h3>桌面基础层已打通</h3>
-              <p>当前已完成前端壳、Electron 主进程、IPC 桥接和真实环境信息读取，下一步进入安装编排与持久化。</p>
+              <p>当前已完成前端壳、Electron 主进程、IPC 桥接、真实环境信息读取和安装草稿持久化。</p>
+            </div>
+            <div className="panel">
+              <h3>控制台预览</h3>
+              <ul>
+                <li>服务状态：待接入</li>
+                <li>日志查看：待接入</li>
+                <li>安装编排：待接入</li>
+                <li>设置页：下一阶段开始</li>
+              </ul>
             </div>
           </section>
         )}

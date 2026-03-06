@@ -2,11 +2,11 @@
 
 ## P0
 - [x] Scaffold React TypeScript installer UI shell
-- [ ] Add Electron main process
-- [ ] Add preload and IPC bridge
-- [ ] Add system info service
-- [ ] Add default install path service
-- [ ] Wire environment detection page to real IPC
+- [x] Add Electron main process
+- [x] Add preload and IPC bridge
+- [x] Add system info service
+- [x] Add default install path service
+- [x] Wire environment detection page to real IPC
 - [ ] Add installer draft persistence
 - [ ] Make desktop dev command run end-to-end
 
