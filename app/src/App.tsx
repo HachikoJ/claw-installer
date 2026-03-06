@@ -1,17 +1,72 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import { installSteps } from './steps';
 import type { EnvironmentCheckItem, InstallStepKey } from './shared-types';
 
-const checks: EnvironmentCheckItem[] = [
-  { key: 'os', label: '操作系统', status: 'pass', detail: '已检测当前系统与架构' },
-  { key: 'network', label: '网络连接', status: 'pass', detail: '网络连接正常，可继续下载资源' },
-  { key: 'permission', label: '写入权限', status: 'warn', detail: '当前目录需在安装时再次确认写入权限' },
-  { key: 'dependency', label: '依赖环境', status: 'pending', detail: '后续接入真实环境检测服务' },
-];
+declare global {
+  interface Window {
+    clawInstaller?: {
+      getEnvironment: () => Promise<{
+        osType: string;
+        osVersion: string;
+        arch: string;
+        homeDir: string;
+        defaultInstallPath: string;
+        defaultDataPath: string;
+        memoryGb: number;
+      }>;
+    };
+  }
+}
 
 function App() {
   const [activeStep, setActiveStep] = useState<InstallStepKey>('location');
+  const [environment, setEnvironment] = useState<null | {
+    osType: string;
+    osVersion: string;
+    arch: string;
+    homeDir: string;
+    defaultInstallPath: string;
+    defaultDataPath: string;
+    memoryGb: number;
+  }>(null);
+
+  useEffect(() => {
+    window.clawInstaller?.getEnvironment().then(setEnvironment).catch(() => undefined);
+  }, []);
+
+  const checks: EnvironmentCheckItem[] = useMemo(
+    () => [
+      {
+        key: 'os',
+        label: '操作系统',
+        status: environment ? 'pass' : 'pending',
+        detail: environment
+          ? `${environment.osType} ${environment.osVersion} · ${environment.arch}`
+          : '正在读取系统信息',
+      },
+      {
+        key: 'memory',
+        label: '内存容量',
+        status: environment ? 'pass' : 'pending',
+        detail: environment ? `检测到 ${environment.memoryGb} GB 内存` : '等待主进程返回信息',
+      },
+      {
+        key: 'network',
+        label: '网络连接',
+        status: 'warn',
+        detail: '网络连通检测将在下一步接入真实检测服务',
+      },
+      {
+        key: 'dependency',
+        label: '依赖环境',
+        status: 'pending',
+        detail: '后续接入 Node / Docker / Git 等真实检测项',
+      },
+    ],
+    [environment],
+  );
+
   const activeIndex = useMemo(
     () => installSteps.findIndex((step) => step.key === activeStep),
     [activeStep],
@@ -64,7 +119,7 @@ function App() {
             <h2>{installSteps[activeIndex]?.title ?? '安装向导'}</h2>
             <p>{installSteps[activeIndex]?.description}</p>
           </div>
-          <div className="status-pill">MVP Scaffold</div>
+          <div className="status-pill">Desktop Foundation</div>
         </header>
 
         {activeStep === 'location' && (
@@ -72,16 +127,16 @@ function App() {
             <div className="panel">
               <h3>安装目录</h3>
               <label>程序目录</label>
-              <input value="C:\\Users\\User\\openclaw" readOnly />
+              <input value={environment?.defaultInstallPath ?? '读取中...'} readOnly />
               <label>数据目录</label>
-              <input value="C:\\Users\\User\\openclaw\\data" readOnly />
+              <input value={environment?.defaultDataPath ?? '读取中...'} readOnly />
             </div>
             <div className="panel">
               <h3>目录说明</h3>
               <ul>
-                <li>默认使用用户目录，避免系统路径权限问题</li>
-                <li>后续支持 macOS / Linux 自动给出对应默认路径</li>
-                <li>真实路径检测与浏览器选择器将在下一阶段接入</li>
+                <li>默认使用当前用户主目录，降低权限问题</li>
+                <li>已通过 Electron 主进程按当前系统生成默认路径</li>
+                <li>下一步接入真实目录选择器和权限检测</li>
               </ul>
             </div>
           </section>
@@ -131,9 +186,9 @@ function App() {
             </div>
             <div className="panel">
               <h3>实时日志</h3>
-              <pre>[info] scaffolding installer flow
-[info] platform adapter pending
-[info] real orchestration will connect next
+              <pre>[info] electron main process wired
+[info] preload bridge ready
+[info] real env data connected
 </pre>
             </div>
           </section>
@@ -153,7 +208,7 @@ function App() {
               <ul>
                 <li>默认仅本地访问</li>
                 <li>默认启用更安全配置</li>
-                <li>后续接入真实配置生成器</li>
+                <li>后续接入真实配置生成器与权限收紧逻辑</li>
               </ul>
             </div>
           </section>
@@ -173,8 +228,8 @@ function App() {
         {activeStep === 'done' && (
           <section className="panel-grid">
             <div className="panel done-panel">
-              <h3>安装流程骨架完成</h3>
-              <p>当前已进入可持续开发阶段，接下来接入真实 Electron 主进程、环境检测和安装执行引擎。</p>
+              <h3>桌面基础层已打通</h3>
+              <p>当前已完成前端壳、Electron 主进程、IPC 桥接和真实环境信息读取，下一步进入安装编排与持久化。</p>
             </div>
           </section>
         )}
