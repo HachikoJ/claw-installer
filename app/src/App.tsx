@@ -247,10 +247,15 @@ function App() {
 
         {activeStep === 'channels' && (
           <section className="panel-grid cards-3">
-            {['Feishu', 'Telegram', 'Webhook'].map((name) => (
-              <div key={name} className="panel selectable">
-                <h3>{name}</h3>
-                <p>渠道配置表单与测试连接能力将在下一阶段接入。</p>
+            {[
+              { name: 'Feishu', fields: 'App ID / App Secret' },
+              { name: 'Telegram', fields: 'Bot Token / Webhook URL' },
+              { name: 'Webhook', fields: 'URL / Secret' },
+            ].map((item) => (
+              <div key={item.name} className="panel selectable">
+                <h3>{item.name}</h3>
+                <p>预设字段：{item.fields}</p>
+                <button className="inline-action">配置该渠道</button>
               </div>
             ))}
           </section>
@@ -305,11 +310,12 @@ function App() {
               </ul>
             </div>
             <div className="panel">
-              <h3>当前研发重点</h3>
+              <h3>诊断壳</h3>
               <ul>
-                <li>端到端桌面启动链路</li>
-                <li>安装编排 skeleton</li>
-                <li>日志服务 skeleton</li>
+                <li>端口冲突检查</li>
+                <li>权限检查</li>
+                <li>配置文件检查</li>
+                <li>日志导出入口</li>
               </ul>
             </div>
           </section>

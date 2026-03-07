@@ -13,16 +13,21 @@ Milestone 1 - installer desktop foundation
 - Real environment bridge added
 - Default install/data path sourced from main process
 - Installer draft persistence completed
+- Dashboard shell completed
+- Settings shell completed
+- Install orchestrator demo skeleton completed
+- Log service skeleton completed
+- Channel form shell added
+- Diagnosis shell added
 
 ## In Progress
 - End-to-end desktop dev command verification
 - Real environment detection expansion
-- Install orchestration skeleton
-- Log service skeleton
-- Dashboard shell and settings shell
+- Channel configuration behavior
+- Diagnosis engine behavior
 
 ## Next
-- Wire more environment checks through main process
-- Add dashboard data and log panels
-- Add install orchestrator and log service skeleton
 - Verify desktop dev loop end-to-end
+- Add richer environment checks through main process
+- Add actionable channel forms and connection test flow
+- Add diagnosis actions and export flow
