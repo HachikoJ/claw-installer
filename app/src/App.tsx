@@ -28,6 +28,11 @@ declare global {
       }>;
       getLogs?: () => Promise<string[]>;
       getPlan?: () => Promise<Array<{ id: string; title: string; status: string }>>;
+      runOrchestratorDemo?: () => Promise<{
+        ok: boolean;
+        plan: Array<{ id: string; title: string; status: string }>;
+        logs: string[];
+      }>;
     };
   }
 }
@@ -37,6 +42,7 @@ function App() {
   const [dashboard, setDashboard] = useState<any>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [plan, setPlan] = useState<Array<{ id: string; title: string; status: string }>>([]);
+  const [isRunningDemo, setIsRunningDemo] = useState(false);
 
   const { activeStep, installPath, dataPath, servicePort, accessMode, setDraft } = useInstallerStore();
 
@@ -50,6 +56,19 @@ function App() {
     window.clawInstaller?.getLogs?.().then(setLogs).catch(() => undefined);
     window.clawInstaller?.getPlan?.().then(setPlan).catch(() => undefined);
   }, [dataPath, installPath, setDraft]);
+
+  const runOrchestratorDemo = async () => {
+    if (!window.clawInstaller?.runOrchestratorDemo) return;
+    setIsRunningDemo(true);
+    try {
+      const result = await window.clawInstaller.runOrchestratorDemo();
+      setPlan(result.plan);
+      setLogs(result.logs);
+      setDraft({ activeStep: 'progress' });
+    } finally {
+      setIsRunningDemo(false);
+    }
+  };
 
   const checks: EnvironmentCheckItem[] = useMemo(
     () => [
@@ -249,6 +268,9 @@ function App() {
                 <li>切到控制台查看运行壳</li>
                 <li>继续补安装编排和日志服务</li>
               </ul>
+              <button className="inline-action" onClick={runOrchestratorDemo} disabled={isRunningDemo}>
+                {isRunningDemo ? '运行中...' : '运行编排 Demo'}
+              </button>
             </div>
           </section>
         )}

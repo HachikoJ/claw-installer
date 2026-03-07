@@ -7,14 +7,14 @@
 - [x] Add system info service
 - [x] Add default install path service
 - [x] Wire environment detection page to real IPC
-- [ ] Add installer draft persistence
+- [x] Add installer draft persistence
 - [ ] Make desktop dev command run end-to-end
 
 ## P1
-- [ ] Add install orchestrator skeleton
-- [ ] Add log service skeleton
-- [ ] Add dashboard shell route
-- [ ] Add settings shell route
+- [x] Add install orchestrator skeleton
+- [x] Add log service skeleton
+- [x] Add dashboard shell route
+- [x] Add settings shell route
 
 ## P2
 - [ ] Add channel configuration forms

@@ -24,7 +24,12 @@ const defaultDraft: InstallerDraft = {
 
 const storageKey = 'claw-installer-draft';
 
+function canUseStorage() {
+  return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+}
+
 function loadDraft(): InstallerDraft {
+  if (!canUseStorage()) return defaultDraft;
   try {
     const raw = localStorage.getItem(storageKey);
     if (!raw) return defaultDraft;
@@ -40,16 +45,20 @@ export const useInstallerStore = create<InstallerStore>((set, get) => ({
   setDraft: (partial) => {
     set(partial);
     const next = { ...get(), ...partial };
-    localStorage.setItem(storageKey, JSON.stringify({
-      activeStep: next.activeStep,
-      installPath: next.installPath,
-      dataPath: next.dataPath,
-      servicePort: next.servicePort,
-      accessMode: next.accessMode,
-    }));
+    if (canUseStorage()) {
+      localStorage.setItem(storageKey, JSON.stringify({
+        activeStep: next.activeStep,
+        installPath: next.installPath,
+        dataPath: next.dataPath,
+        servicePort: next.servicePort,
+        accessMode: next.accessMode,
+      }));
+    }
   },
   resetDraft: () => {
-    localStorage.removeItem(storageKey);
+    if (canUseStorage()) {
+      localStorage.removeItem(storageKey);
+    }
     set(defaultDraft);
   },
 }));
