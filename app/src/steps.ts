@@ -8,4 +8,6 @@ export const installSteps: StepItem[] = [
   { key: 'basicConfig', title: '基础配置', description: '生成初始运行配置' },
   { key: 'channels', title: '接入配置', description: '连接飞书、Telegram 等渠道' },
   { key: 'done', title: '完成', description: '查看结果并进入控制台' },
+  { key: 'dashboard', title: '控制台', description: '查看运行状态与近期事件' },
+  { key: 'settings', title: '设置', description: '查看配置与下一步计划' },
 ];

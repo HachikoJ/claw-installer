@@ -15,21 +15,28 @@ declare global {
         defaultInstallPath: string;
         defaultDataPath: string;
         memoryGb: number;
+        hasNode?: boolean;
+        cwdWritable?: boolean;
       }>;
+      getDashboard?: () => Promise<{
+        serviceStatus: string;
+        gatewayStatus: string;
+        channelCount: number;
+        installedSkillCount: number;
+        lastStartTime: string | null;
+        recentEvents: string[];
+      }>;
+      getLogs?: () => Promise<string[]>;
+      getPlan?: () => Promise<Array<{ id: string; title: string; status: string }>>;
     };
   }
 }
 
 function App() {
-  const [environment, setEnvironment] = useState<null | {
-    osType: string;
-    osVersion: string;
-    arch: string;
-    homeDir: string;
-    defaultInstallPath: string;
-    defaultDataPath: string;
-    memoryGb: number;
-  }>(null);
+  const [environment, setEnvironment] = useState<any>(null);
+  const [dashboard, setDashboard] = useState<any>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [plan, setPlan] = useState<Array<{ id: string; title: string; status: string }>>([]);
 
   const { activeStep, installPath, dataPath, servicePort, accessMode, setDraft } = useInstallerStore();
 
@@ -39,6 +46,9 @@ function App() {
       if (!installPath) setDraft({ installPath: env.defaultInstallPath });
       if (!dataPath) setDraft({ dataPath: env.defaultDataPath });
     }).catch(() => undefined);
+    window.clawInstaller?.getDashboard?.().then(setDashboard).catch(() => undefined);
+    window.clawInstaller?.getLogs?.().then(setLogs).catch(() => undefined);
+    window.clawInstaller?.getPlan?.().then(setPlan).catch(() => undefined);
   }, [dataPath, installPath, setDraft]);
 
   const checks: EnvironmentCheckItem[] = useMemo(
@@ -47,9 +57,7 @@ function App() {
         key: 'os',
         label: '操作系统',
         status: environment ? 'pass' : 'pending',
-        detail: environment
-          ? `${environment.osType} ${environment.osVersion} · ${environment.arch}`
-          : '正在读取系统信息',
+        detail: environment ? `${environment.osType} ${environment.osVersion} · ${environment.arch}` : '正在读取系统信息',
       },
       {
         key: 'memory',
@@ -58,25 +66,22 @@ function App() {
         detail: environment ? `检测到 ${environment.memoryGb} GB 内存` : '等待主进程返回信息',
       },
       {
-        key: 'path',
-        label: '默认路径',
-        status: installPath ? 'pass' : 'pending',
-        detail: installPath ? `安装目录：${installPath}` : '正在生成默认安装目录',
+        key: 'node',
+        label: 'Node 环境',
+        status: environment?.hasNode ? 'pass' : 'warn',
+        detail: environment ? (environment.hasNode ? 'Node runtime 可用' : 'Node 环境检查未通过') : '等待检测',
       },
       {
-        key: 'dependency',
-        label: '依赖环境',
-        status: 'pending',
-        detail: '下一步继续接入 Node / Docker / Git 等真实检测项',
+        key: 'permission',
+        label: '写入权限',
+        status: environment?.cwdWritable ? 'pass' : 'warn',
+        detail: environment ? (environment.cwdWritable ? '当前工作目录可写' : '当前工作目录写权限待处理') : '等待检测',
       },
     ],
-    [environment, installPath],
+    [environment],
   );
 
-  const activeIndex = useMemo(
-    () => installSteps.findIndex((step) => step.key === activeStep),
-    [activeStep],
-  );
+  const activeIndex = useMemo(() => installSteps.findIndex((step) => step.key === activeStep), [activeStep]);
 
   const nextStep = () => {
     const next = installSteps[activeIndex + 1];
@@ -103,11 +108,7 @@ function App() {
             const isActive = step.key === activeStep;
             const isDone = index < activeIndex;
             return (
-              <button
-                key={step.key}
-                className={`step-card ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}
-                onClick={() => setDraft({ activeStep: step.key })}
-              >
+              <button key={step.key} className={`step-card ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`} onClick={() => setDraft({ activeStep: step.key })}>
                 <span className="step-index">{index + 1}</span>
                 <span>
                   <strong>{step.title}</strong>
@@ -119,7 +120,7 @@ function App() {
         </div>
         <div className="sidebar-footer">
           <strong>开发状态</strong>
-          <small>已接入 Electron / preload / IPC / draft persistence</small>
+          <small>已进入 Electron + IPC + draft persistence 阶段，正在推进 dashboard / settings / orchestration。</small>
         </div>
       </aside>
 
@@ -129,7 +130,7 @@ function App() {
             <h2>{installSteps[activeIndex]?.title ?? '安装向导'}</h2>
             <p>{installSteps[activeIndex]?.description}</p>
           </div>
-          <div className="status-pill">Desktop Foundation</div>
+          <div className="status-pill">Accelerated Build</div>
         </header>
 
         {activeStep === 'location' && (
@@ -146,7 +147,7 @@ function App() {
               <ul>
                 <li>默认路径从 Electron 主进程按系统自动生成</li>
                 <li>当前页面内容会自动保存，下次打开可以恢复</li>
-                <li>下一步继续接入真实目录选择器和权限检测</li>
+                <li>下一步接入真实目录选择器和权限检测</li>
               </ul>
             </div>
           </section>
@@ -185,21 +186,22 @@ function App() {
         {activeStep === 'progress' && (
           <section className="panel-grid two-col">
             <div className="panel">
-              <h3>安装进度</h3>
+              <h3>安装计划</h3>
               <div className="progress-bar"><span style={{ width: '42%' }} /></div>
-              <ul>
-                <li>创建目录</li>
-                <li>下载核心资源</li>
-                <li>生成配置文件</li>
-                <li>启动服务</li>
-              </ul>
+              <div className="check-list compact">
+                {plan.map((item) => (
+                  <div key={item.id} className={`check-item ${item.status === 'done' ? 'pass' : item.status === 'running' ? 'pending' : 'warn'}`}>
+                    <div>
+                      <strong>{item.title}</strong>
+                    </div>
+                    <span>{item.status}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="panel">
               <h3>实时日志</h3>
-              <pre>[info] electron shell wired
-[info] IPC bridge active
-[info] draft persistence active
-</pre>
+              <pre>{logs.join('\n')}</pre>
             </div>
           </section>
         )}
@@ -242,12 +244,50 @@ function App() {
               <p>当前已完成前端壳、Electron 主进程、IPC 桥接、真实环境信息读取和安装草稿持久化。</p>
             </div>
             <div className="panel">
-              <h3>控制台预览</h3>
+              <h3>下一步</h3>
               <ul>
-                <li>服务状态：待接入</li>
-                <li>日志查看：待接入</li>
-                <li>安装编排：待接入</li>
-                <li>设置页：下一阶段开始</li>
+                <li>切到控制台查看运行壳</li>
+                <li>继续补安装编排和日志服务</li>
+              </ul>
+            </div>
+          </section>
+        )}
+
+        {activeStep === 'dashboard' && (
+          <section className="panel-grid two-col">
+            <div className="panel">
+              <h3>控制台总览</h3>
+              <div className="metric-row"><strong>服务状态</strong><span>{dashboard?.serviceStatus ?? 'loading'}</span></div>
+              <div className="metric-row"><strong>网关状态</strong><span>{dashboard?.gatewayStatus ?? 'loading'}</span></div>
+              <div className="metric-row"><strong>渠道数量</strong><span>{dashboard?.channelCount ?? '-'}</span></div>
+              <div className="metric-row"><strong>技能数量</strong><span>{dashboard?.installedSkillCount ?? '-'}</span></div>
+            </div>
+            <div className="panel">
+              <h3>近期事件</h3>
+              <ul>
+                {(dashboard?.recentEvents ?? []).map((event: string) => <li key={event}>{event}</li>)}
+              </ul>
+            </div>
+          </section>
+        )}
+
+        {activeStep === 'settings' && (
+          <section className="panel-grid two-col">
+            <div className="panel">
+              <h3>设置壳</h3>
+              <ul>
+                <li>通用设置</li>
+                <li>网络设置</li>
+                <li>安全设置</li>
+                <li>日志设置</li>
+              </ul>
+            </div>
+            <div className="panel">
+              <h3>当前研发重点</h3>
+              <ul>
+                <li>端到端桌面启动链路</li>
+                <li>安装编排 skeleton</li>
+                <li>日志服务 skeleton</li>
               </ul>
             </div>
           </section>

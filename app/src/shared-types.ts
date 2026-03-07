@@ -1,12 +1,13 @@
 export type InstallStepKey =
-  | 'welcome'
   | 'location'
   | 'environment'
   | 'mode'
   | 'progress'
   | 'basicConfig'
   | 'channels'
-  | 'done';
+  | 'done'
+  | 'dashboard'
+  | 'settings';
 
 export interface StepItem {
   key: InstallStepKey;
