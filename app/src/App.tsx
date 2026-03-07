@@ -3,6 +3,7 @@ import './App.css';
 import { installSteps } from './steps';
 import type { EnvironmentCheckItem } from './shared-types';
 import { useInstallerStore } from './store';
+import { channelPresets } from './channel-presets';
 
 declare global {
   interface Window {
@@ -247,14 +248,11 @@ function App() {
 
         {activeStep === 'channels' && (
           <section className="panel-grid cards-3">
-            {[
-              { name: 'Feishu', fields: 'App ID / App Secret' },
-              { name: 'Telegram', fields: 'Bot Token / Webhook URL' },
-              { name: 'Webhook', fields: 'URL / Secret' },
-            ].map((item) => (
+            {channelPresets.map((item) => (
               <div key={item.name} className="panel selectable">
                 <h3>{item.name}</h3>
-                <p>预设字段：{item.fields}</p>
+                <p>预设字段：{item.fields.join(' / ')}</p>
+                <p>{item.note}</p>
                 <button className="inline-action">配置该渠道</button>
               </div>
             ))}
