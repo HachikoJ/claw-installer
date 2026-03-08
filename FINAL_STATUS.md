@@ -3,6 +3,11 @@
 ## Tonight delivery version
 This repository now provides a browser-first final version that can be accepted tonight without requiring a desktop GUI environment.
 
+## Final verification summary
+- `npm run build` ✅
+- `npm run dev:web` ✅ (Vite started successfully at `http://localhost:5173/`)
+- `npm run pack` ✅ (packaging completed and produced `app/release/linux-unpacked/`)
+
 ## Ready now
 - Browser-first installer UI via `npm run dev:web`
 - Installer step flow
@@ -13,7 +18,7 @@ This repository now provides a browser-first final version that can be accepted 
 - Diagnosis export demo
 - Acceptance status panel
 - Packaging config
-- `npm run pack` verification
+- Verified pack flow
 
 ## Main acceptance path tonight
 1. `cd /root/.openclaw/workspace/claw-installer/app`

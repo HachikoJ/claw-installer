@@ -27,19 +27,19 @@ Milestone 1 - installer desktop foundation
 - Acceptance guide added
 - Acceptance status panel added
 - Diagnosis export feedback added
+- Browser-first delivery docs added
+- Final handoff / release notes added
+- Final browser-first verification completed
 
 ## In Progress
-- End-to-end desktop dev command verification
-- Real environment detection expansion
-- Channel configuration behavior polishing
-- Diagnosis engine behavior polishing
+- GUI environment end-to-end validation on a machine with display support
+- Further polish of actionable channel/diagnosis flows
 
 ## Current Blocking Point
 - Electron desktop dev still requires a graphical display in this VM (`Missing X server or $DISPLAY`)
-- Browser fallback (`dev:web`) and packaging are available even without GUI
+- Browser fallback (`dev:web`) and packaging are verified and available
 
 ## Next
-- Add richer environment checks through main process
-- Add actionable channel forms and connection test flow
-- Add diagnosis actions and export flow polish
-- Add a more explicit browser-first development fallback flow
+- Run GUI environment validation on a host with display support
+- Polish real channel connection flow
+- Polish real diagnosis actions
