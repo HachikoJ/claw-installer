@@ -10,6 +10,8 @@ export interface InstallerDraft {
   accessMode: string;
   channelDrafts: Record<string, ChannelDraft>;
   diagnosisReport: string;
+  lastExportPath: string;
+  packVerified: boolean;
 }
 
 interface InstallerStore extends InstallerDraft {
@@ -18,6 +20,8 @@ interface InstallerStore extends InstallerDraft {
   toggleChannel: (channel: string, enabled: boolean) => void;
   setChannelTestResult: (channel: string, result: ChannelDraft['lastTestResult']) => void;
   setDiagnosisReport: (report: string) => void;
+  setLastExportPath: (path: string) => void;
+  setPackVerified: (value: boolean) => void;
   resetDraft: () => void;
 }
 
@@ -29,6 +33,8 @@ const defaultDraft: InstallerDraft = {
   accessMode: 'local_only',
   channelDrafts: defaultChannelDrafts as Record<string, ChannelDraft>,
   diagnosisReport: '',
+  lastExportPath: '',
+  packVerified: true,
 };
 
 const storageKey = 'claw-installer-draft';
@@ -67,6 +73,8 @@ export const useInstallerStore = create<InstallerStore>((set, get) => ({
       accessMode: next.accessMode,
       channelDrafts: next.channelDrafts,
       diagnosisReport: next.diagnosisReport,
+      lastExportPath: next.lastExportPath,
+      packVerified: next.packVerified,
     });
   },
   updateChannelField: (channel, field, value) => {
@@ -111,6 +119,14 @@ export const useInstallerStore = create<InstallerStore>((set, get) => ({
   setDiagnosisReport: (report) => {
     set({ diagnosisReport: report });
     persistState({ ...get(), diagnosisReport: report });
+  },
+  setLastExportPath: (path) => {
+    set({ lastExportPath: path });
+    persistState({ ...get(), lastExportPath: path });
+  },
+  setPackVerified: (value) => {
+    set({ packVerified: value });
+    persistState({ ...get(), packVerified: value });
   },
   resetDraft: () => {
     if (canUseStorage()) {

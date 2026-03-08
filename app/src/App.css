@@ -35,6 +35,23 @@ button { cursor: pointer; }
 .test-result.success { color: #86efac; }
 .test-result.failed { color: #fbbf24; }
 .test-result.testing { color: #93c5fd; }
+.acceptance-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+.acceptance-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.acceptance-item.ok small { color: #86efac; }
+.acceptance-item.todo small { color: #fbbf24; }
+.success-note {
+  margin-top: 12px;
+  color: #86efac;
+  word-break: break-all;
+}
 
 .shell {
   min-height: 100vh;

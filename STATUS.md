@@ -24,6 +24,9 @@ Milestone 1 - installer desktop foundation
 - Diagnosis report export demo added
 - Packaging config added
 - Directory packaging (`npm run pack`) verified successfully
+- Acceptance guide added
+- Acceptance status panel added
+- Diagnosis export feedback added
 
 ## In Progress
 - End-to-end desktop dev command verification
@@ -33,10 +36,10 @@ Milestone 1 - installer desktop foundation
 
 ## Current Blocking Point
 - Electron desktop dev still requires a graphical display in this VM (`Missing X server or $DISPLAY`)
-- Browser fallback (`dev:web`) and packaging are now available even without GUI
+- Browser fallback (`dev:web`) and packaging are available even without GUI
 
 ## Next
 - Add richer environment checks through main process
 - Add actionable channel forms and connection test flow
-- Add diagnosis actions and export flow
+- Add diagnosis actions and export flow polish
 - Add a more explicit browser-first development fallback flow

@@ -4,7 +4,7 @@ import { installSteps } from './steps';
 import type { EnvironmentCheckItem } from './shared-types';
 import { useInstallerStore } from './store';
 import { channelPresets } from './channel-presets';
-import { buildDiagnosisReport, testChannelConnection } from './services';
+import { buildAcceptanceState, buildDiagnosisReport, testChannelConnection } from './services';
 
 declare global {
   interface Window {
@@ -19,6 +19,8 @@ declare global {
         memoryGb: number;
         hasNode?: boolean;
         cwdWritable?: boolean;
+        hasDisplay?: boolean;
+        isRoot?: boolean;
       }>;
       getDashboard?: () => Promise<{
         serviceStatus: string;
@@ -55,11 +57,14 @@ function App() {
     accessMode,
     channelDrafts,
     diagnosisReport,
+    lastExportPath,
+    packVerified,
     setDraft,
     updateChannelField,
     toggleChannel,
     setChannelTestResult,
     setDiagnosisReport,
+    setLastExportPath,
   } = useInstallerStore();
 
   useEffect(() => {
@@ -94,6 +99,8 @@ function App() {
       memoryGb: environment?.memoryGb,
       hasNode: environment?.hasNode,
       cwdWritable: environment?.cwdWritable,
+      hasDisplay: environment?.hasDisplay,
+      isRoot: environment?.isRoot,
       servicePort,
     });
     setDiagnosisReport(report);
@@ -103,6 +110,7 @@ function App() {
   const exportDiagnosis = async () => {
     if (!window.clawInstaller?.exportDiagnosis || !diagnosisReport) return;
     const result = await window.clawInstaller.exportDiagnosis(diagnosisReport);
+    setLastExportPath(result.filePath);
     setLogs((prev) => [...prev, `[info] Diagnosis exported to ${result.filePath}`]);
   };
 
@@ -160,6 +168,14 @@ function App() {
     [environment, installPath, servicePort],
   );
 
+  const acceptanceItems = useMemo(() => buildAcceptanceState({
+    installPath,
+    dataPath,
+    diagnosisReport,
+    hasPack: packVerified,
+    channelDrafts,
+  }), [installPath, dataPath, diagnosisReport, packVerified, channelDrafts]);
+
   const activeIndex = useMemo(() => installSteps.findIndex((step) => step.key === activeStep), [activeStep]);
 
   const nextStep = () => {
@@ -198,8 +214,15 @@ function App() {
           })}
         </div>
         <div className="sidebar-footer">
-          <strong>开发状态</strong>
-          <small>正在从 UI 壳推进到可操作表单、连接测试、诊断报告与端到端开发链路。</small>
+          <strong>验收状态</strong>
+          <div className="acceptance-list">
+            {acceptanceItems.map((item) => (
+              <div key={item.label} className={`acceptance-item ${item.ok ? 'ok' : 'todo'}`}>
+                <span>{item.ok ? '✓' : '·'}</span>
+                <small>{item.label}</small>
+              </div>
+            ))}
+          </div>
         </div>
       </aside>
 
@@ -256,6 +279,7 @@ function App() {
                 <button className="inline-action" onClick={exportDiagnosis} disabled={!diagnosisReport}>导出报告</button>
               </div>
               <pre>{diagnosisReport || '尚未生成诊断报告'}</pre>
+              {lastExportPath && <p className="success-note">最近导出：{lastExportPath}</p>}
             </div>
           </section>
         )}
@@ -352,6 +376,7 @@ function App() {
                     <span className={`test-result ${draft?.lastTestResult ?? 'idle'}`}>
                       {draft?.lastTestResult === 'success' && '连接成功'}
                       {draft?.lastTestResult === 'failed' && '连接失败'}
+                      {draft?.lastTestResult === 'testing' && '信息不完整，待补全'}
                       {(!draft?.lastTestResult || draft?.lastTestResult === 'idle') && '尚未测试'}
                     </span>
                   </div>
@@ -412,6 +437,7 @@ function App() {
             <div className="panel">
               <h3>诊断报告</h3>
               <pre>{diagnosisReport || '尚未生成诊断报告'}</pre>
+              {lastExportPath && <p className="success-note">最近导出：{lastExportPath}</p>}
             </div>
           </section>
         )}
