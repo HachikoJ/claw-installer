@@ -21,3 +21,9 @@ export interface EnvironmentCheckItem {
   status: 'pass' | 'warn' | 'fail' | 'pending';
   detail: string;
 }
+
+export interface ChannelDraft {
+  enabled: boolean;
+  fields: Record<string, string>;
+  lastTestResult?: 'idle' | 'success' | 'failed' | 'testing';
+}

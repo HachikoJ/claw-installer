@@ -4,6 +4,7 @@ import { installSteps } from './steps';
 import type { EnvironmentCheckItem } from './shared-types';
 import { useInstallerStore } from './store';
 import { channelPresets } from './channel-presets';
+import { buildDiagnosisReport, testChannelConnection } from './services';
 
 declare global {
   interface Window {
@@ -45,7 +46,20 @@ function App() {
   const [plan, setPlan] = useState<Array<{ id: string; title: string; status: string }>>([]);
   const [isRunningDemo, setIsRunningDemo] = useState(false);
 
-  const { activeStep, installPath, dataPath, servicePort, accessMode, setDraft } = useInstallerStore();
+  const {
+    activeStep,
+    installPath,
+    dataPath,
+    servicePort,
+    accessMode,
+    channelDrafts,
+    diagnosisReport,
+    setDraft,
+    updateChannelField,
+    toggleChannel,
+    setChannelTestResult,
+    setDiagnosisReport,
+  } = useInstallerStore();
 
   useEffect(() => {
     window.clawInstaller?.getEnvironment().then((env) => {
@@ -69,6 +83,20 @@ function App() {
     } finally {
       setIsRunningDemo(false);
     }
+  };
+
+  const runDiagnosis = () => {
+    const report = buildDiagnosisReport({
+      osType: environment?.osType,
+      osVersion: environment?.osVersion,
+      arch: environment?.arch,
+      memoryGb: environment?.memoryGb,
+      hasNode: environment?.hasNode,
+      cwdWritable: environment?.cwdWritable,
+      servicePort,
+    });
+    setDiagnosisReport(report);
+    setDraft({ activeStep: 'settings' });
   };
 
   const checks: EnvironmentCheckItem[] = useMemo(
@@ -97,8 +125,20 @@ function App() {
         status: environment?.cwdWritable ? 'pass' : 'warn',
         detail: environment ? (environment.cwdWritable ? '当前工作目录可写' : '当前工作目录写权限待处理') : '等待检测',
       },
+      {
+        key: 'path',
+        label: '安装目录',
+        status: installPath ? 'pass' : 'warn',
+        detail: installPath || '尚未指定安装目录',
+      },
+      {
+        key: 'port',
+        label: '服务端口',
+        status: servicePort ? 'pass' : 'warn',
+        detail: `当前端口 ${servicePort || '未设置'}`,
+      },
     ],
-    [environment],
+    [environment, installPath, servicePort],
   );
 
   const activeIndex = useMemo(() => installSteps.findIndex((step) => step.key === activeStep), [activeStep]);
@@ -140,7 +180,7 @@ function App() {
         </div>
         <div className="sidebar-footer">
           <strong>开发状态</strong>
-          <small>已进入 Electron + IPC + draft persistence 阶段，正在推进 dashboard / settings / orchestration。</small>
+          <small>正在从 UI 壳推进到可操作表单、连接测试、诊断报告与端到端开发链路。</small>
         </div>
       </aside>
 
@@ -174,7 +214,7 @@ function App() {
         )}
 
         {activeStep === 'environment' && (
-          <section className="panel-grid">
+          <section className="panel-grid two-col">
             <div className="panel">
               <h3>环境检测结果</h3>
               <div className="check-list">
@@ -188,6 +228,12 @@ function App() {
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="panel">
+              <h3>诊断动作</h3>
+              <p>根据当前环境信息生成一份可导出的诊断摘要，用于快速定位启动与配置问题。</p>
+              <button className="inline-action" onClick={runDiagnosis}>生成诊断报告</button>
+              <pre>{diagnosisReport || '尚未生成诊断报告'}</pre>
             </div>
           </section>
         )}
@@ -248,14 +294,48 @@ function App() {
 
         {activeStep === 'channels' && (
           <section className="panel-grid cards-3">
-            {channelPresets.map((item) => (
-              <div key={item.name} className="panel selectable">
-                <h3>{item.name}</h3>
-                <p>预设字段：{item.fields.join(' / ')}</p>
-                <p>{item.note}</p>
-                <button className="inline-action">配置该渠道</button>
-              </div>
-            ))}
+            {channelPresets.map((item) => {
+              const draft = channelDrafts[item.name];
+              return (
+                <div key={item.name} className="panel selectable">
+                  <div className="toggle-row">
+                    <h3>{item.name}</h3>
+                    <label className="switch-row">
+                      <input
+                        type="checkbox"
+                        checked={draft?.enabled ?? false}
+                        onChange={(e) => toggleChannel(item.name, e.target.checked)}
+                      />
+                      <span>{draft?.enabled ? '已启用' : '未启用'}</span>
+                    </label>
+                  </div>
+                  <p>{item.note}</p>
+                  {item.fields.map((field) => (
+                    <div key={field}>
+                      <label>{field}</label>
+                      <input
+                        value={draft?.fields?.[field] ?? ''}
+                        onChange={(e) => updateChannelField(item.name, field, e.target.value)}
+                        placeholder={`请输入 ${field}`}
+                      />
+                    </div>
+                  ))}
+                  <div className="channel-actions">
+                    <button
+                      className="inline-action"
+                      onClick={() => setChannelTestResult(item.name, testChannelConnection(item.name, draft))}
+                    >
+                      测试连接
+                    </button>
+                    <span className={`test-result ${draft?.lastTestResult ?? 'idle'}`}>
+                      {draft?.lastTestResult === 'success' && '连接成功'}
+                      {draft?.lastTestResult === 'failed' && '连接失败'}
+                      {(!draft?.lastTestResult || draft?.lastTestResult === 'idle') && '尚未测试'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </section>
         )}
 
@@ -308,13 +388,8 @@ function App() {
               </ul>
             </div>
             <div className="panel">
-              <h3>诊断壳</h3>
-              <ul>
-                <li>端口冲突检查</li>
-                <li>权限检查</li>
-                <li>配置文件检查</li>
-                <li>日志导出入口</li>
-              </ul>
+              <h3>诊断报告</h3>
+              <pre>{diagnosisReport || '尚未生成诊断报告'}</pre>
             </div>
           </section>
         )}

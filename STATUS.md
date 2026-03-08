@@ -19,15 +19,18 @@ Milestone 1 - installer desktop foundation
 - Log service skeleton completed
 - Channel form shell added
 - Diagnosis shell added
+- Channel draft persistence added
+- Channel connection test demo added
+- Diagnosis report export demo added
 
 ## In Progress
 - End-to-end desktop dev command verification
 - Real environment detection expansion
-- Channel configuration behavior
-- Diagnosis engine behavior
+- Channel configuration behavior polishing
+- Diagnosis engine behavior polishing
 
 ## Next
-- Verify desktop dev loop end-to-end
+- Verify desktop dev loop end-to-end with fallback strategy
 - Add richer environment checks through main process
 - Add actionable channel forms and connection test flow
 - Add diagnosis actions and export flow
