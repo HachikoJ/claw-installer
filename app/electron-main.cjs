@@ -21,16 +21,30 @@ function defaultInstallPath() {
   return path.join(os.homedir(), 'openclaw');
 }
 
+function exists(commandPath) {
+  try {
+    return fs.existsSync(commandPath);
+  } catch {
+    return false;
+  }
+}
+
 function getEnvironment() {
+  const homeDir = os.homedir();
+  const installPath = defaultInstallPath();
   return {
     osType: process.platform,
     osVersion: os.release(),
     arch: os.arch(),
-    homeDir: os.homedir(),
-    defaultInstallPath: defaultInstallPath(),
-    defaultDataPath: path.join(defaultInstallPath(), 'data'),
+    homeDir,
+    defaultInstallPath: installPath,
+    defaultDataPath: path.join(installPath, 'data'),
     memoryGb: Math.round(os.totalmem() / 1024 / 1024 / 1024),
+    cpuCount: os.cpus().length,
     hasNode: Boolean(process.versions.node),
+    hasGit: exists('/usr/bin/git') || exists('/bin/git'),
+    hasDisplay: Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY),
+    hasDocker: exists('/usr/bin/docker') || exists('/bin/docker'),
     cwdWritable: (() => {
       try {
         fs.accessSync(process.cwd(), fs.constants.W_OK);
@@ -39,7 +53,14 @@ function getEnvironment() {
         return false;
       }
     })(),
-    hasDisplay: Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY),
+    homeWritable: (() => {
+      try {
+        fs.accessSync(homeDir, fs.constants.W_OK);
+        return true;
+      } catch {
+        return false;
+      }
+    })(),
     isRoot: typeof process.getuid === 'function' ? process.getuid() === 0 : false,
   };
 }

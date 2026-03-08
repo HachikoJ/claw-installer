@@ -28,6 +28,11 @@
 - Run `cd app && npm run pack`
 - Confirm output exists under `app/release/linux-unpacked/`
 
+## Browser-first acceptance path for today
+- Primary path: `cd app && npm run dev:web`
+- Verify the interactive installer in browser first
+- Use `npm run pack` as the packaging acceptance item
+
 ## Known limitation
 - Electron desktop dev still requires a graphical environment (`DISPLAY / WAYLAND_DISPLAY`)
 - In this VM, browser fallback is the main acceptance path

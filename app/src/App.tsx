@@ -17,8 +17,12 @@ declare global {
         defaultInstallPath: string;
         defaultDataPath: string;
         memoryGb: number;
+        cpuCount?: number;
         hasNode?: boolean;
+        hasGit?: boolean;
+        hasDocker?: boolean;
         cwdWritable?: boolean;
+        homeWritable?: boolean;
         hasDisplay?: boolean;
         isRoot?: boolean;
       }>;
@@ -135,10 +139,34 @@ function App() {
         detail: environment ? (environment.hasNode ? 'Node runtime 可用' : 'Node 环境检查未通过') : '等待检测',
       },
       {
+        key: 'git',
+        label: 'Git 工具',
+        status: environment?.hasGit ? 'pass' : 'warn',
+        detail: environment ? (environment.hasGit ? 'Git 已检测到' : 'Git 未检测到') : '等待检测',
+      },
+      {
+        key: 'docker',
+        label: 'Docker 工具',
+        status: environment?.hasDocker ? 'pass' : 'warn',
+        detail: environment ? (environment.hasDocker ? 'Docker 已检测到' : 'Docker 未检测到，可后续再装') : '等待检测',
+      },
+      {
         key: 'permission',
         label: '写入权限',
         status: environment?.cwdWritable ? 'pass' : 'warn',
         detail: environment ? (environment.cwdWritable ? '当前工作目录可写' : '当前工作目录写权限待处理') : '等待检测',
+      },
+      {
+        key: 'home',
+        label: '用户目录权限',
+        status: environment?.homeWritable ? 'pass' : 'warn',
+        detail: environment ? (environment.homeWritable ? '用户目录可写' : '用户目录写权限待处理') : '等待检测',
+      },
+      {
+        key: 'cpu',
+        label: 'CPU 核心数',
+        status: environment?.cpuCount ? 'pass' : 'pending',
+        detail: environment ? `检测到 ${environment.cpuCount} 核 CPU` : '等待检测',
       },
       {
         key: 'display',

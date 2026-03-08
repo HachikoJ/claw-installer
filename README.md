@@ -50,9 +50,15 @@ npm run pack
 
 ## 今天可验收建议
 
-优先验这 4 项：
+优先按下面顺序验：
 
-1. 安装向导步骤切换与草稿恢复
-2. 渠道配置页面的表单录入、启用开关、连接测试 Demo
-3. 环境检测页的诊断报告生成与导出
-4. `npm run pack` 是否能产出 `linux-unpacked`
+1. `cd app && npm run dev:web`
+2. 验安装向导步骤切换与草稿恢复
+3. 验渠道配置页的表单录入、启用开关、连接测试 Demo
+4. 验环境检测页的诊断报告生成与导出
+5. 验 `npm run pack` 是否能产出 `linux-unpacked`
+
+## 当前限制
+
+- 这台 VM 没有图形环境，因此今天的主验收路径应以 `dev:web` 为主
+- Electron GUI 端到端联调需要带 `DISPLAY / WAYLAND_DISPLAY` 的机器继续验证
