@@ -52,6 +52,18 @@ button { cursor: pointer; }
   color: #86efac;
   word-break: break-all;
 }
+.delivery-panel {
+  margin-bottom: 20px;
+}
+.delivery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.delivery-grid strong {
+  display: block;
+  margin-bottom: 10px;
+}
 
 .shell {
   min-height: 100vh;

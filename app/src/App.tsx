@@ -120,78 +120,18 @@ function App() {
 
   const checks: EnvironmentCheckItem[] = useMemo(
     () => [
-      {
-        key: 'os',
-        label: '操作系统',
-        status: environment ? 'pass' : 'pending',
-        detail: environment ? `${environment.osType} ${environment.osVersion} · ${environment.arch}` : '正在读取系统信息',
-      },
-      {
-        key: 'memory',
-        label: '内存容量',
-        status: environment ? 'pass' : 'pending',
-        detail: environment ? `检测到 ${environment.memoryGb} GB 内存` : '等待主进程返回信息',
-      },
-      {
-        key: 'node',
-        label: 'Node 环境',
-        status: environment?.hasNode ? 'pass' : 'warn',
-        detail: environment ? (environment.hasNode ? 'Node runtime 可用' : 'Node 环境检查未通过') : '等待检测',
-      },
-      {
-        key: 'git',
-        label: 'Git 工具',
-        status: environment?.hasGit ? 'pass' : 'warn',
-        detail: environment ? (environment.hasGit ? 'Git 已检测到' : 'Git 未检测到') : '等待检测',
-      },
-      {
-        key: 'docker',
-        label: 'Docker 工具',
-        status: environment?.hasDocker ? 'pass' : 'warn',
-        detail: environment ? (environment.hasDocker ? 'Docker 已检测到' : 'Docker 未检测到，可后续再装') : '等待检测',
-      },
-      {
-        key: 'permission',
-        label: '写入权限',
-        status: environment?.cwdWritable ? 'pass' : 'warn',
-        detail: environment ? (environment.cwdWritable ? '当前工作目录可写' : '当前工作目录写权限待处理') : '等待检测',
-      },
-      {
-        key: 'home',
-        label: '用户目录权限',
-        status: environment?.homeWritable ? 'pass' : 'warn',
-        detail: environment ? (environment.homeWritable ? '用户目录可写' : '用户目录写权限待处理') : '等待检测',
-      },
-      {
-        key: 'cpu',
-        label: 'CPU 核心数',
-        status: environment?.cpuCount ? 'pass' : 'pending',
-        detail: environment ? `检测到 ${environment.cpuCount} 核 CPU` : '等待检测',
-      },
-      {
-        key: 'display',
-        label: '图形环境',
-        status: environment?.hasDisplay ? 'pass' : 'warn',
-        detail: environment ? (environment.hasDisplay ? '检测到 DISPLAY / WAYLAND_DISPLAY' : '未检测到图形环境，可使用 dev:web fallback') : '等待检测',
-      },
-      {
-        key: 'root',
-        label: '当前权限',
-        status: environment?.isRoot ? 'warn' : 'pass',
-        detail: environment ? (environment.isRoot ? '当前以 root 运行，Electron 需 no-sandbox' : '当前非 root 运行') : '等待检测',
-      },
-      {
-        key: 'path',
-        label: '安装目录',
-        status: installPath ? 'pass' : 'warn',
-        detail: installPath || '尚未指定安装目录',
-      },
-      {
-        key: 'port',
-        label: '服务端口',
-        status: servicePort ? 'pass' : 'warn',
-        detail: `当前端口 ${servicePort || '未设置'}`,
-      },
+      { key: 'os', label: '操作系统', status: environment ? 'pass' : 'pending', detail: environment ? `${environment.osType} ${environment.osVersion} · ${environment.arch}` : '正在读取系统信息' },
+      { key: 'memory', label: '内存容量', status: environment ? 'pass' : 'pending', detail: environment ? `检测到 ${environment.memoryGb} GB 内存` : '等待主进程返回信息' },
+      { key: 'cpu', label: 'CPU 核心数', status: environment?.cpuCount ? 'pass' : 'pending', detail: environment ? `检测到 ${environment.cpuCount} 核 CPU` : '等待检测' },
+      { key: 'node', label: 'Node 环境', status: environment?.hasNode ? 'pass' : 'warn', detail: environment ? (environment.hasNode ? 'Node runtime 可用' : 'Node 环境检查未通过') : '等待检测' },
+      { key: 'git', label: 'Git 工具', status: environment?.hasGit ? 'pass' : 'warn', detail: environment ? (environment.hasGit ? 'Git 已检测到' : 'Git 未检测到') : '等待检测' },
+      { key: 'docker', label: 'Docker 工具', status: environment?.hasDocker ? 'pass' : 'warn', detail: environment ? (environment.hasDocker ? 'Docker 已检测到' : 'Docker 未检测到，可后续再装') : '等待检测' },
+      { key: 'permission', label: '工作目录权限', status: environment?.cwdWritable ? 'pass' : 'warn', detail: environment ? (environment.cwdWritable ? '当前工作目录可写' : '当前工作目录写权限待处理') : '等待检测' },
+      { key: 'home', label: '用户目录权限', status: environment?.homeWritable ? 'pass' : 'warn', detail: environment ? (environment.homeWritable ? '用户目录可写' : '用户目录写权限待处理') : '等待检测' },
+      { key: 'display', label: '图形环境', status: environment?.hasDisplay ? 'pass' : 'warn', detail: environment ? (environment.hasDisplay ? '检测到 DISPLAY / WAYLAND_DISPLAY' : '未检测到图形环境，可使用 dev:web fallback') : '等待检测' },
+      { key: 'root', label: '当前权限', status: environment?.isRoot ? 'warn' : 'pass', detail: environment ? (environment.isRoot ? '当前以 root 运行，Electron 需 no-sandbox' : '当前非 root 运行') : '等待检测' },
+      { key: 'path', label: '安装目录', status: installPath ? 'pass' : 'warn', detail: installPath || '尚未指定安装目录' },
+      { key: 'port', label: '服务端口', status: servicePort ? 'pass' : 'warn', detail: `当前端口 ${servicePort || '未设置'}` },
     ],
     [environment, installPath, servicePort],
   );
@@ -260,8 +200,27 @@ function App() {
             <h2>{installSteps[activeIndex]?.title ?? '安装向导'}</h2>
             <p>{installSteps[activeIndex]?.description}</p>
           </div>
-          <div className="status-pill">Accelerated Build</div>
+          <div className="status-pill">Tonight Delivery Mode</div>
         </header>
+
+        <section className="panel delivery-panel">
+          <h3>今晚验收主路径</h3>
+          <div className="delivery-grid">
+            <div>
+              <strong>推荐命令</strong>
+              <pre>cd app{`\n`}npm install{`\n`}npm run dev:web</pre>
+            </div>
+            <div>
+              <strong>验收顺序</strong>
+              <ul>
+                <li>步骤切换与草稿恢复</li>
+                <li>渠道配置与连接测试 Demo</li>
+                <li>诊断报告生成与导出</li>
+                <li>npm run pack 打包验证</li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
         {activeStep === 'location' && (
           <section className="panel-grid two-col">
