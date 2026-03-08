@@ -39,6 +39,8 @@ function getEnvironment() {
         return false;
       }
     })(),
+    hasDisplay: Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY),
+    isRoot: typeof process.getuid === 'function' ? process.getuid() === 0 : false,
   };
 }
 
@@ -71,7 +73,7 @@ ipcMain.handle('system:getDashboard', async () => ({
   channelCount: 0,
   installedSkillCount: 0,
   lastStartTime: null,
-  recentEvents: runtimeState.logs.slice(-3),
+  recentEvents: runtimeState.logs.slice(-5),
 }));
 ipcMain.handle('installer:getLogs', async () => runtimeState.logs);
 ipcMain.handle('installer:getPlan', async () => runtimeState.plan);
@@ -85,12 +87,25 @@ ipcMain.handle('installer:runOrchestratorDemo', async () => {
   ];
   return { ok: true, plan: runtimeState.plan, logs: runtimeState.logs };
 });
+ipcMain.handle('installer:exportDiagnosis', async (_event, reportText) => {
+  const outDir = path.join(process.cwd(), 'artifacts');
+  fs.mkdirSync(outDir, { recursive: true });
+  const filePath = path.join(outDir, `diagnosis-${Date.now()}.txt`);
+  fs.writeFileSync(filePath, reportText || '', 'utf8');
+  runtimeState.logs.push(`[info] Diagnosis exported: ${filePath}`);
+  return { ok: true, filePath };
+});
 
 app.whenReady().then(() => {
-  createWindow();
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
+  const env = getEnvironment();
+  if (env.hasDisplay) {
+    createWindow();
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+  } else {
+    runtimeState.logs.push('[warn] No DISPLAY detected, Electron window skipped; use dev:web as fallback');
+  }
 });
 
 app.on('window-all-closed', () => {

@@ -35,6 +35,7 @@ declare global {
         plan: Array<{ id: string; title: string; status: string }>;
         logs: string[];
       }>;
+      exportDiagnosis?: (reportText: string) => Promise<{ ok: boolean; filePath: string }>;
     };
   }
 }
@@ -99,6 +100,12 @@ function App() {
     setDraft({ activeStep: 'settings' });
   };
 
+  const exportDiagnosis = async () => {
+    if (!window.clawInstaller?.exportDiagnosis || !diagnosisReport) return;
+    const result = await window.clawInstaller.exportDiagnosis(diagnosisReport);
+    setLogs((prev) => [...prev, `[info] Diagnosis exported to ${result.filePath}`]);
+  };
+
   const checks: EnvironmentCheckItem[] = useMemo(
     () => [
       {
@@ -124,6 +131,18 @@ function App() {
         label: '写入权限',
         status: environment?.cwdWritable ? 'pass' : 'warn',
         detail: environment ? (environment.cwdWritable ? '当前工作目录可写' : '当前工作目录写权限待处理') : '等待检测',
+      },
+      {
+        key: 'display',
+        label: '图形环境',
+        status: environment?.hasDisplay ? 'pass' : 'warn',
+        detail: environment ? (environment.hasDisplay ? '检测到 DISPLAY / WAYLAND_DISPLAY' : '未检测到图形环境，可使用 dev:web fallback') : '等待检测',
+      },
+      {
+        key: 'root',
+        label: '当前权限',
+        status: environment?.isRoot ? 'warn' : 'pass',
+        detail: environment ? (environment.isRoot ? '当前以 root 运行，Electron 需 no-sandbox' : '当前非 root 运行') : '等待检测',
       },
       {
         key: 'path',
@@ -232,7 +251,10 @@ function App() {
             <div className="panel">
               <h3>诊断动作</h3>
               <p>根据当前环境信息生成一份可导出的诊断摘要，用于快速定位启动与配置问题。</p>
-              <button className="inline-action" onClick={runDiagnosis}>生成诊断报告</button>
+              <div className="channel-actions">
+                <button className="inline-action" onClick={runDiagnosis}>生成诊断报告</button>
+                <button className="inline-action" onClick={exportDiagnosis} disabled={!diagnosisReport}>导出报告</button>
+              </div>
               <pre>{diagnosisReport || '尚未生成诊断报告'}</pre>
             </div>
           </section>

@@ -8,7 +8,9 @@
 - [x] Add default install path service
 - [x] Wire environment detection page to real IPC
 - [x] Add installer draft persistence
-- [ ] Make desktop dev command run end-to-end
+- [ ] Make desktop dev command run end-to-end in GUI environment
+- [x] Add browser/web fallback dev path
+- [x] Add packaging config and verify pack
 
 ## P1
 - [x] Add install orchestrator skeleton
@@ -24,4 +26,4 @@
 ## P2
 - [ ] Add actionable channel connection flow
 - [ ] Add diagnostics engine actions
-- [ ] Add packaging config
+- [ ] Improve package metadata and release polish

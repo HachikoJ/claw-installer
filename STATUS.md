@@ -22,6 +22,8 @@ Milestone 1 - installer desktop foundation
 - Channel draft persistence added
 - Channel connection test demo added
 - Diagnosis report export demo added
+- Packaging config added
+- Directory packaging (`npm run pack`) verified successfully
 
 ## In Progress
 - End-to-end desktop dev command verification
@@ -29,8 +31,12 @@ Milestone 1 - installer desktop foundation
 - Channel configuration behavior polishing
 - Diagnosis engine behavior polishing
 
+## Current Blocking Point
+- Electron desktop dev still requires a graphical display in this VM (`Missing X server or $DISPLAY`)
+- Browser fallback (`dev:web`) and packaging are now available even without GUI
+
 ## Next
-- Verify desktop dev loop end-to-end with fallback strategy
 - Add richer environment checks through main process
 - Add actionable channel forms and connection test flow
 - Add diagnosis actions and export flow
+- Add a more explicit browser-first development fallback flow

@@ -1,0 +1,23 @@
+{
+  "appId": "ai.openclaw.installer",
+  "productName": "Claw Installer",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "electron-main.cjs",
+    "preload.cjs",
+    "package.json"
+  ],
+  "linux": {
+    "target": ["AppImage", "tar.gz"],
+    "category": "Utility"
+  },
+  "mac": {
+    "target": ["dmg", "zip"]
+  },
+  "win": {
+    "target": ["nsis", "zip"]
+  }
+}

@@ -6,4 +6,5 @@ contextBridge.exposeInMainWorld('clawInstaller', {
   getLogs: () => ipcRenderer.invoke('installer:getLogs'),
   getPlan: () => ipcRenderer.invoke('installer:getPlan'),
   runOrchestratorDemo: () => ipcRenderer.invoke('installer:runOrchestratorDemo'),
+  exportDiagnosis: (reportText) => ipcRenderer.invoke('installer:exportDiagnosis', reportText),
 });
