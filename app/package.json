@@ -1,7 +1,10 @@
 {
   "name": "claw-installer-app",
+  "productName": "Claw Installer",
   "private": true,
   "version": "0.1.0",
+  "description": "A visual OpenClaw installer and deployment console for macOS, Windows, and Linux.",
+  "author": "Wilson / HachikoJ",
   "type": "module",
   "main": "electron-main.cjs",
   "scripts": {
@@ -11,6 +14,9 @@
     "build:web": "tsc -b && vite build",
     "build": "npm run build:web",
     "pack": "npm run build && electron-builder --config electron-builder.json --dir",
+    "pack:win": "npm run build && electron-builder --config electron-builder.json --win nsis portable",
+    "pack:linux": "npm run build && electron-builder --config electron-builder.json --linux AppImage tar.gz",
+    "pack:mac": "npm run build && electron-builder --config electron-builder.json --mac dmg zip",
     "lint": "eslint .",
     "preview": "vite preview"
   },
